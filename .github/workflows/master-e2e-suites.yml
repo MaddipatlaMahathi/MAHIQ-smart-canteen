@@ -15,7 +15,8 @@ jobs:
         uses: actions/checkout@v3
       - name: Setup Node
         uses: actions/setup-node@v3
-        with: { node-version: 18 }
+        with:
+          node-version: '18'
       - name: Generate Reports
         run: |
           cd mobile-e2e-framework
@@ -35,7 +36,8 @@ jobs:
         uses: actions/checkout@v3
       - name: Setup Node
         uses: actions/setup-node@v3
-        with: { node-version: 18 }
+        with:
+          node-version: '18'
       - name: Generate Reports
         run: |
           cd mobile-e2e-framework
@@ -55,7 +57,8 @@ jobs:
         uses: actions/checkout@v3
       - name: Setup Node
         uses: actions/setup-node@v3
-        with: { node-version: 18 }
+        with:
+          node-version: '18'
       - name: Generate Reports
         run: |
           cd mobile-e2e-framework
@@ -75,7 +78,8 @@ jobs:
         uses: actions/checkout@v3
       - name: Setup Node
         uses: actions/setup-node@v3
-        with: { node-version: 18 }
+        with:
+          node-version: '18'
       - name: Generate Reports
         run: |
           cd mobile-e2e-framework
@@ -95,7 +99,8 @@ jobs:
         uses: actions/checkout@v3
       - name: Setup Node
         uses: actions/setup-node@v3
-        with: { node-version: 18 }
+        with:
+          node-version: '18'
       - name: Generate Reports
         run: |
           cd mobile-e2e-framework
@@ -115,7 +120,8 @@ jobs:
         uses: actions/checkout@v3
       - name: Setup Node
         uses: actions/setup-node@v3
-        with: { node-version: 18 }
+        with:
+          node-version: '18'
       - name: Generate Reports
         run: |
           cd mobile-e2e-framework
@@ -136,7 +142,8 @@ jobs:
         uses: actions/checkout@v3
       - name: Setup Node
         uses: actions/setup-node@v3
-        with: { node-version: 18 }
+        with:
+          node-version: '18'
       - name: Generate Reports
         run: |
           cd mobile-e2e-framework
