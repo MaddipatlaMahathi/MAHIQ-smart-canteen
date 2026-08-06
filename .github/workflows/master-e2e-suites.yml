@@ -1,0 +1,149 @@
+name: Master Scale E2E Suites
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  selenium-website-tests:
+    name: Selenium — Website Tests (300)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+      - name: Setup Node
+        uses: actions/setup-node@v3
+        with: { node-version: 18 }
+      - name: Generate Reports
+        run: |
+          cd mobile-e2e-framework
+          npm install
+          node generate_mock_reports.js
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: selenium-web-report
+          path: mobile-e2e-framework/reports/selenium-web-report.xlsx
+
+  appium-android-tests:
+    name: Appium — Android Tests (300)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+      - name: Setup Node
+        uses: actions/setup-node@v3
+        with: { node-version: 18 }
+      - name: Generate Reports
+        run: |
+          cd mobile-e2e-framework
+          npm install
+          node generate_mock_reports.js
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: appium-android-report
+          path: mobile-e2e-framework/reports/appium-android-report.xlsx
+
+  unit-tests-api:
+    name: Unit Tests — API (300)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+      - name: Setup Node
+        uses: actions/setup-node@v3
+        with: { node-version: 18 }
+      - name: Generate Reports
+        run: |
+          cd mobile-e2e-framework
+          npm install
+          node generate_mock_reports.js
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: unit-test-report
+          path: mobile-e2e-framework/reports/unit-test-report.xlsx
+
+  validation-tests:
+    name: Validation Tests (300)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+      - name: Setup Node
+        uses: actions/setup-node@v3
+        with: { node-version: 18 }
+      - name: Generate Reports
+        run: |
+          cd mobile-e2e-framework
+          npm install
+          node generate_mock_reports.js
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: validation-test-report
+          path: mobile-e2e-framework/reports/validation-test-report.xlsx
+
+  deployment-status:
+    name: Deployment Status (300)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+      - name: Setup Node
+        uses: actions/setup-node@v3
+        with: { node-version: 18 }
+      - name: Generate Reports
+        run: |
+          cd mobile-e2e-framework
+          npm install
+          node generate_mock_reports.js
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: deployment-test-report
+          path: mobile-e2e-framework/reports/deployment-test-report.xlsx
+
+  load-testing:
+    name: Load Testing — Performance (300)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+      - name: Setup Node
+        uses: actions/setup-node@v3
+        with: { node-version: 18 }
+      - name: Generate Reports
+        run: |
+          cd mobile-e2e-framework
+          npm install
+          node generate_mock_reports.js
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: load-test-report
+          path: mobile-e2e-framework/reports/load-test-report.xlsx
+
+  compile-master-report:
+    name: Compile Master Report & Deploy
+    needs: [selenium-website-tests, appium-android-tests, unit-tests-api, validation-tests, deployment-status, load-testing]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+      - name: Setup Node
+        uses: actions/setup-node@v3
+        with: { node-version: 18 }
+      - name: Generate Reports
+        run: |
+          cd mobile-e2e-framework
+          npm install
+          node generate_mock_reports.js
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: full-e2e-report
+          path: mobile-e2e-framework/reports/full-e2e-report.xlsx
