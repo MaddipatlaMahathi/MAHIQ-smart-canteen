@@ -1,0 +1,33 @@
+{
+  "name": "android-e2e-framework",
+  "version": "1.0.0",
+  "description": "Enterprise Appium E2E Automation Framework for Android Applications",
+  "main": "tests/baseTest.js",
+  "scripts": {
+    "test": "mocha tests/**/*.test.js --timeout 120000 --reporter mochawesome --reporter-options reportDir=reports,reportFilename=Mochawesome_Report",
+    "test:auth": "mocha tests/auth.test.js --timeout 120000",
+    "clean": "rm -rf reports/* logs/* screenshots/* excel/*",
+    "lint": "eslint .",
+    "posttest": "node utilities/excelReporter.js"
+  },
+  "keywords": [
+    "appium",
+    "android",
+    "automation",
+    "qa",
+    "mocha"
+  ],
+  "author": "Antigravity",
+  "license": "ISC",
+  "devDependencies": {
+    "chai": "^4.3.7",
+    "eslint": "^8.45.0",
+    "mocha": "^10.2.0",
+    "mochawesome": "^7.1.3"
+  },
+  "dependencies": {
+    "exceljs": "^4.3.0",
+    "webdriverio": "^8.12.1",
+    "winston": "^3.10.0"
+  }
+}
