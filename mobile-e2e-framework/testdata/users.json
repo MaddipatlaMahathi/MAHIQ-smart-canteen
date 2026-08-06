@@ -1,0 +1,10 @@
+{
+  "validUser": {
+    "username": "admin@mahiq.com",
+    "password": "Password123!"
+  },
+  "invalidUser": {
+    "username": "fake@mahiq.com",
+    "password": "wrongpassword"
+  }
+}

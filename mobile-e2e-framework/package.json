@@ -1,0 +1,31 @@
+{
+  "name": "mobile-e2e-framework",
+  "version": "1.0.0",
+  "description": "Enterprise Appium E2E Automation Framework for Android",
+  "main": "index.js",
+  "scripts": {
+    "test": "mocha tests/**/*.js --timeout 60000 --reporter mochawesome --reporter-options reportDir=reports,reportFilename=Mochawesome_Report",
+    "test:login": "mocha tests/login.test.js --timeout 60000 --reporter mochawesome --reporter-options reportDir=reports,reportFilename=Login_Report",
+    "clean": "rm -rf reports/* screenshots/* logs/* excel/*"
+  },
+  "keywords": [
+    "appium",
+    "android",
+    "mocha",
+    "chai",
+    "automation"
+  ],
+  "author": "Antigravity",
+  "license": "ISC",
+  "dependencies": {
+    "appium": "^2.11.2",
+    "webdriverio": "^8.39.0"
+  },
+  "devDependencies": {
+    "chai": "^4.4.1",
+    "exceljs": "^4.4.0",
+    "mocha": "^10.4.0",
+    "mochawesome": "^7.1.3",
+    "winston": "^3.13.0"
+  }
+}
