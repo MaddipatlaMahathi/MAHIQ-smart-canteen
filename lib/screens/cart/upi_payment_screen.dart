@@ -4,7 +4,6 @@ import 'package:qr_flutter/qr_flutter.dart';
 import 'package:upi_india/upi_india.dart';
 import 'package:provider/provider.dart';
 import 'package:uuid/uuid.dart';
-import 'package:url_launcher/url_launcher.dart';
 import '../../providers/cart_provider.dart';
 import '../../providers/order_provider.dart';
 import '../../providers/auth_provider.dart';
@@ -27,12 +26,19 @@ class _UpiPaymentScreenState extends State<UpiPaymentScreen> {
   final String _upiId = '7013884017@axl';
   final String _payeeName = 'MAHIQ Admin';
   bool _isProcessing = false;
+  final TextEditingController _utrController = TextEditingController();
+  bool _isUtrValid = false;
   final UpiIndia _upiIndia = UpiIndia();
   List<UpiApp>? apps;
 
   @override
   void initState() {
     super.initState();
+    _utrController.addListener(() {
+      setState(() {
+        _isUtrValid = _utrController.text.trim().length >= 12;
+      });
+    });
     _upiIndia.getAllUpiApps(mandatoryTransactionId: false).then((value) {
       setState(() {
         apps = value;
@@ -42,6 +48,12 @@ class _UpiPaymentScreenState extends State<UpiPaymentScreen> {
         apps = [];
       });
     });
+  }
+
+  @override
+  void dispose() {
+    _utrController.dispose();
+    super.dispose();
   }
 
   Uri get _upiUri {
@@ -140,12 +152,15 @@ class _UpiPaymentScreenState extends State<UpiPaymentScreen> {
       cart.setCanteenAndSlot(dummyCanteen, '1:00 PM');
     }
 
+    String actualStatus = isManualQr ? 'Verification Pending' : 'Paid';
+    String actualMethod = isManualQr ? 'UPI (QR Scan)' : 'UPI';
+
     String? orderId = await orderProvider.placeOrder(
       user, 
       cart, 
       canteenProvider,
-      paymentMethod: isManualQr ? 'UPI (Simulated)' : 'UPI',
-      paymentStatus: 'Paid',
+      paymentMethod: actualMethod,
+      paymentStatus: actualStatus,
       paymentId: transactionId,
     );
 
@@ -165,19 +180,18 @@ class _UpiPaymentScreenState extends State<UpiPaymentScreen> {
   }
 
   Widget _buildUpiApps() {
-    Widget appsGrid;
     if (apps == null) {
-      appsGrid = const Center(child: CircularProgressIndicator());
+      return const Center(child: CircularProgressIndicator());
     } else if (apps!.isEmpty) {
-      appsGrid = const Center(
+      return const Center(
         child: Text(
-          "No UPI Apps found by plugin. Try the universal launcher below.",
+          "No UPI Apps found on your device. Please use the QR code to pay using another device.",
           textAlign: TextAlign.center,
           style: TextStyle(color: AppColors.warningOrange, fontWeight: FontWeight.bold),
         ),
       );
     } else {
-      appsGrid = Wrap(
+      return Wrap(
         alignment: WrapAlignment.center,
         spacing: 16,
         runSpacing: 16,
@@ -213,34 +227,6 @@ class _UpiPaymentScreenState extends State<UpiPaymentScreen> {
         }).toList(),
       );
     }
-
-    return Column(
-      children: [
-        appsGrid,
-        const SizedBox(height: 32),
-        const Text('Universal UPI Launcher (Fallback)', style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.textGrey)),
-        const SizedBox(height: 12),
-        SizedBox(
-          width: double.infinity,
-          height: 56,
-          child: ElevatedButton.icon(
-            onPressed: () async {
-              if (await canLaunchUrl(_upiUri)) {
-                await launchUrl(_upiUri, mode: LaunchMode.externalApplication);
-              } else {
-                _showError('Could not open any UPI app. Make sure GPay/PhonePe is installed.');
-              }
-            },
-            icon: const Icon(Icons.account_balance_wallet, color: Colors.white),
-            label: const Text('Open UPI App directly', style: TextStyle(fontSize: 16, color: Colors.white, fontWeight: FontWeight.bold)),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.primaryBlue,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-            ),
-          ),
-        ),
-      ],
-    );
   }
 
   @override
@@ -335,19 +321,53 @@ class _UpiPaymentScreenState extends State<UpiPaymentScreen> {
                 ),
                 const SizedBox(height: 32),
                 
+                // UTR Input Field
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text('Enter 12-Digit UTR / Transaction ID', style: TextStyle(fontWeight: FontWeight.bold)),
+                    const SizedBox(height: 8),
+                    TextField(
+                      controller: _utrController,
+                      keyboardType: TextInputType.number,
+                      maxLength: 12,
+                      decoration: InputDecoration(
+                        hintText: 'e.g. 312345678901',
+                        filled: true,
+                        fillColor: Colors.grey.shade50,
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide(color: Colors.grey.shade300),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: const BorderSide(color: AppColors.primaryBlue, width: 2),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                
                 // Manual Verification Button
                 SizedBox(
                   width: double.infinity,
                   height: 56,
                   child: ElevatedButton(
-                    onPressed: () => _finalizeOrder('simulated_txn_123', isManualQr: true),
+                    onPressed: _isUtrValid 
+                      ? () => _finalizeOrder(_utrController.text.trim(), isManualQr: true)
+                      : null,
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.successGreen,
+                      backgroundColor: _isUtrValid ? AppColors.successGreen : Colors.grey.shade300,
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                     ),
-                    child: const Text(
-                      'Simulate Payment (Test Mode)', 
-                      style: TextStyle(fontSize: 18, color: Colors.white, fontWeight: FontWeight.bold)
+                    child: Text(
+                      'Verify Payment', 
+                      style: TextStyle(
+                        fontSize: 18, 
+                        color: _isUtrValid ? Colors.white : Colors.grey.shade600, 
+                        fontWeight: FontWeight.bold
+                      )
                     ),
                   ),
                 ),
