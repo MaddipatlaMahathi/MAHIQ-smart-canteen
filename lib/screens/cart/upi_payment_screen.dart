@@ -10,7 +10,7 @@ import '../../providers/auth_provider.dart';
 import '../../providers/canteen_provider.dart';
 import '../../models/user_model.dart';
 import '../../models/canteen_model.dart';
-import '../orders/order_confirmation_screen.dart';
+import '../orders/order_tracking_screen.dart';
 import '../../utils/app_colors.dart';
 
 class UpiPaymentScreen extends StatefulWidget {
@@ -145,9 +145,10 @@ class _UpiPaymentScreenState extends State<UpiPaymentScreen> {
     });
 
     if (orderId != null && mounted) {
-      Navigator.pushReplacement(
+      Navigator.pushAndRemoveUntil(
         context,
-        MaterialPageRoute(builder: (_) => OrderConfirmationScreen(orderId: orderId)),
+        MaterialPageRoute(builder: (_) => OrderTrackingScreen(orderId: orderId)),
+        (route) => route.isFirst,
       );
     } else {
       _showError('Failed to place order in database. Please contact admin.');

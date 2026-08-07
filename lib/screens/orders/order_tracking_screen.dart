@@ -122,14 +122,56 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
 
           final orderData = snapshot.data!.data() as Map<String, dynamic>;
           final currentStatus = orderData['status'] ?? 'Pending';
+          final paymentStatus = orderData['paymentStatus'] ?? 'Not Paid';
+          final paymentMethod = orderData['paymentMethod'] ?? 'Unknown';
+          final queueNumber = 'Q-${orderData['queueNumber']?.toString().padLeft(3, '0') ?? '000'}';
+          final slot = orderData['slot'] ?? 'N/A';
+          final totalAmount = (orderData['totalAmount'] ?? 0).toDouble();
+          final orderedItems = orderData['orderedItems'] as List<dynamic>? ?? [];
           
           _checkStatusChange(currentStatus);
+
+          bool isPaid = paymentStatus == 'Paid';
 
           return SingleChildScrollView(
             padding: const EdgeInsets.all(24.0),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                // Payment Status Badge
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 24),
+                  decoration: BoxDecoration(
+                    color: isPaid ? AppColors.successGreen.withOpacity(0.1) : AppColors.warningOrange.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: isPaid ? AppColors.successGreen : AppColors.warningOrange, width: 2),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(isPaid ? Icons.check_circle : Icons.pending_actions, color: isPaid ? AppColors.successGreen : AppColors.warningOrange, size: 32),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              isPaid ? 'Payment Successful' : 'Payment Pending',
+                              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: isPaid ? AppColors.successGreen : AppColors.warningOrange),
+                            ),
+                            Text(
+                              isPaid ? 'Paid via $paymentMethod' : 'Pay at Counter ($paymentMethod)',
+                              style: const TextStyle(color: AppColors.textGrey, fontSize: 14),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 24),
+
+                // Order Status & ID Card
                 Card(
                   elevation: 2,
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
@@ -142,46 +184,86 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text('Order ID: \${widget.orderId}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: AppColors.primaryBlue)),
-                        const SizedBox(height: 16),
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                const Text(
-                                  'Current Status',
-                                  style: TextStyle(color: AppColors.textGrey, fontSize: 14),
-                                ),
-                                const SizedBox(height: 4),
-                                Text(
-                                  currentStatus,
-                                  style: const TextStyle(
-                                    fontSize: 24,
-                                    fontWeight: FontWeight.bold,
-                                    color: AppColors.primaryBlue,
-                                  ),
-                                ),
-                              ],
+                            Text('Order ID: ${widget.orderId.substring(0, 8)}...', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: AppColors.textGrey)),
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                              decoration: BoxDecoration(
+                                color: AppColors.primaryBlue,
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: Text(queueNumber, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
                             ),
                           ],
+                        ),
+                        const SizedBox(height: 16),
+                        const Text('Current Status', style: TextStyle(color: AppColors.textGrey, fontSize: 14)),
+                        const SizedBox(height: 4),
+                        Text(
+                          currentStatus,
+                          style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: AppColors.primaryBlue),
                         ),
                       ],
                     ),
                   ),
                 ),
-                const SizedBox(height: 32),
-                const Text(
-                  'Order Status Timeline',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                ),
                 const SizedBox(height: 24),
+
+                // Live Timeline
+                const Text('Order Status Timeline', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                const SizedBox(height: 16),
                 _buildTimelineStep('Pending', currentStatus),
                 _buildTimelineStep('Accepted', currentStatus),
                 _buildTimelineStep('Preparing', currentStatus),
                 _buildTimelineStep('Ready', currentStatus),
                 _buildTimelineStep('Delivered', currentStatus),
+                const SizedBox(height: 24),
+
+                // Order Details List
+                const Text('Order Details', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                const SizedBox(height: 16),
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(16),
+                    boxShadow: [BoxShadow(color: Colors.grey.shade200, blurRadius: 10)],
+                  ),
+                  child: Column(
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          const Text('Pickup Slot', style: TextStyle(color: AppColors.textGrey)),
+                          Text(slot, style: const TextStyle(fontWeight: FontWeight.bold)),
+                        ],
+                      ),
+                      const Divider(height: 24),
+                      ...orderedItems.map((item) {
+                        return Padding(
+                          padding: const EdgeInsets.only(bottom: 8.0),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text('${item['quantity']}x ${item['itemName']}'),
+                              Text('₹${(item['price'] * item['quantity']).toStringAsFixed(2)}'),
+                            ],
+                          ),
+                        );
+                      }).toList(),
+                      const Divider(height: 24),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          const Text('Total Amount', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                          Text('₹${totalAmount.toStringAsFixed(2)}', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.primaryBlue)),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
               ],
             ),
           );
