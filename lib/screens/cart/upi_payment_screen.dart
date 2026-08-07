@@ -26,20 +26,12 @@ class _UpiPaymentScreenState extends State<UpiPaymentScreen> {
   final String _upiId = '7013884017@axl';
   final String _payeeName = 'MAHIQ Admin';
   bool _isProcessing = false;
-  final TextEditingController _utrController = TextEditingController();
-  bool _isUtrValid = false;
-
   final UpiIndia _upiIndia = UpiIndia();
   List<UpiApp>? apps;
 
   @override
   void initState() {
     super.initState();
-    _utrController.addListener(() {
-      setState(() {
-        _isUtrValid = _utrController.text.trim().length >= 12;
-      });
-    });
     _upiIndia.getAllUpiApps(mandatoryTransactionId: false).then((value) {
       setState(() {
         apps = value;
@@ -49,12 +41,6 @@ class _UpiPaymentScreenState extends State<UpiPaymentScreen> {
         apps = [];
       });
     });
-  }
-
-  @override
-  void dispose() {
-    _utrController.dispose();
-    super.dispose();
   }
 
   String get _upiUrl {
@@ -144,15 +130,12 @@ class _UpiPaymentScreenState extends State<UpiPaymentScreen> {
       cart.setCanteenAndSlot(dummyCanteen, '1:00 PM');
     }
 
-    String actualStatus = isManualQr ? 'Verification Pending' : 'Paid';
-    String actualMethod = isManualQr ? 'UPI (QR Scan)' : 'UPI';
-
     String? orderId = await orderProvider.placeOrder(
       user, 
       cart, 
       canteenProvider,
-      paymentMethod: actualMethod,
-      paymentStatus: actualStatus,
+      paymentMethod: isManualQr ? 'UPI (Simulated)' : 'UPI',
+      paymentStatus: 'Paid',
       paymentId: transactionId,
     );
 
@@ -317,53 +300,19 @@ class _UpiPaymentScreenState extends State<UpiPaymentScreen> {
                 ),
                 const SizedBox(height: 32),
                 
-                // UTR Input Field
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text('Enter 12-Digit UTR / Transaction ID', style: TextStyle(fontWeight: FontWeight.bold)),
-                    const SizedBox(height: 8),
-                    TextField(
-                      controller: _utrController,
-                      keyboardType: TextInputType.number,
-                      maxLength: 12,
-                      decoration: InputDecoration(
-                        hintText: 'e.g. 312345678901',
-                        filled: true,
-                        fillColor: Colors.grey.shade50,
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide: BorderSide(color: Colors.grey.shade300),
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide: const BorderSide(color: AppColors.primaryBlue, width: 2),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 16),
-                
                 // Manual Verification Button
                 SizedBox(
                   width: double.infinity,
                   height: 56,
                   child: ElevatedButton(
-                    onPressed: _isUtrValid 
-                      ? () => _finalizeOrder(_utrController.text.trim(), isManualQr: true)
-                      : null,
+                    onPressed: () => _finalizeOrder('simulated_txn_123', isManualQr: true),
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: _isUtrValid ? AppColors.successGreen : Colors.grey.shade300,
+                      backgroundColor: AppColors.successGreen,
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                     ),
-                    child: Text(
-                      'Verify Payment', 
-                      style: TextStyle(
-                        fontSize: 18, 
-                        color: _isUtrValid ? Colors.white : Colors.grey.shade600, 
-                        fontWeight: FontWeight.bold
-                      )
+                    child: const Text(
+                      'Simulate Payment (Test Mode)', 
+                      style: TextStyle(fontSize: 18, color: Colors.white, fontWeight: FontWeight.bold)
                     ),
                   ),
                 ),
