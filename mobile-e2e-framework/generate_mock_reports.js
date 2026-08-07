@@ -17,7 +17,7 @@ async function generateReport(filename, sheetName, totalTests) {
     sheet.getRow(1).font = { bold: true };
     sheet.getRow(1).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFD3D3D3' } };
 
-    const statuses = ['PASS', 'PASS', 'PASS', 'PASS', 'FAIL', 'SKIPPED'];
+    const statuses = ['PASS'];
 
     for (let i = 1; i <= totalTests; i++) {
         sheet.addRow({
