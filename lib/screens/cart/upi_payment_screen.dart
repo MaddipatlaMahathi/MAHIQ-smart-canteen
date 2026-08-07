@@ -299,6 +299,22 @@ class _UpiPaymentScreenState extends State<UpiPaymentScreen> {
                     ],
                   ),
                 ),
+                const SizedBox(height: 32),
+                
+                // Manual Verification Button
+                SizedBox(
+                  width: double.infinity,
+                  height: 56,
+                  child: ElevatedButton(
+                    onPressed: () => _finalizeOrder('manual_qr_payment'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.successGreen,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    ),
+                    child: const Text('I have paid successfully', style: TextStyle(fontSize: 18, color: Colors.white, fontWeight: FontWeight.bold)),
+                  ),
+                ),
+                
                 const SizedBox(height: 48),
               ],
             ),
