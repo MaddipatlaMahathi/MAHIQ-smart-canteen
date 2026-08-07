@@ -6,6 +6,9 @@ on:
       - main
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 jobs:
   selenium-tests:
     name: Selenium E2E Web + API Tests
