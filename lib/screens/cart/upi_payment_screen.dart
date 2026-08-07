@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:qr_flutter/qr_flutter.dart';
-import 'package:upi_india/upi_india.dart';
 import 'package:provider/provider.dart';
 import 'package:uuid/uuid.dart';
 import '../../providers/cart_provider.dart';
@@ -28,8 +27,6 @@ class _UpiPaymentScreenState extends State<UpiPaymentScreen> {
   bool _isProcessing = false;
   final TextEditingController _utrController = TextEditingController();
   bool _isUtrValid = false;
-  final UpiIndia _upiIndia = UpiIndia();
-  List<UpiApp>? apps;
 
   @override
   void initState() {
@@ -37,15 +34,6 @@ class _UpiPaymentScreenState extends State<UpiPaymentScreen> {
     _utrController.addListener(() {
       setState(() {
         _isUtrValid = _utrController.text.trim().length >= 12;
-      });
-    });
-    _upiIndia.getAllUpiApps(mandatoryTransactionId: false).then((value) {
-      setState(() {
-        apps = value;
-      });
-    }).catchError((e) {
-      setState(() {
-        apps = [];
       });
     });
   }
@@ -84,47 +72,7 @@ class _UpiPaymentScreenState extends State<UpiPaymentScreen> {
     }
   }
 
-  Future<void> _startTransaction(UpiApp app) async {
-    final transactionRef = const Uuid().v4().substring(0, 12);
-    
-    try {
-      UpiResponse response = await _upiIndia.startTransaction(
-        app: app,
-        receiverUpiId: _upiId,
-        receiverName: _payeeName,
-        transactionRefId: transactionRef,
-        transactionNote: 'Payment for MAHIQ Order',
-        amount: widget.totalAmount,
-      );
 
-      _handleUpiResponse(response);
-    } catch (e) {
-      _showError(_handleUpiError(e));
-    }
-  }
-
-  String _handleUpiError(dynamic e) {
-    if (e is UpiIndiaAppNotInstalledException) return 'Requested app not installed on device';
-    if (e is UpiIndiaUserCancelledException) return 'You cancelled the transaction';
-    if (e is UpiIndiaNullResponseException) return "Requested app didn't return any response";
-    if (e is UpiIndiaInvalidParametersException) return 'Requested app cannot handle the transaction';
-    return 'An unknown error occurred';
-  }
-
-  void _handleUpiResponse(UpiResponse response) {
-    String status = response.status ?? UpiPaymentStatus.FAILURE;
-
-    if (status == UpiPaymentStatus.SUCCESS) {
-      // Payment Successful! Verify on our end
-      _finalizeOrder(response.transactionId);
-    } else if (status == UpiPaymentStatus.SUBMITTED) {
-      _showError('Payment is pending. Order not placed. Please check your bank app.');
-    } else if (status == UpiPaymentStatus.FAILURE) {
-      _showError('Payment Failed. Please try again.');
-    } else {
-      _showError('Payment was Cancelled or Failed.');
-    }
-  }
 
   Future<void> _finalizeOrder(String? transactionId, {bool isManualQr = false}) async {
     setState(() {
@@ -180,53 +128,30 @@ class _UpiPaymentScreenState extends State<UpiPaymentScreen> {
   }
 
   Widget _buildUpiApps() {
-    if (apps == null) {
-      return const Center(child: CircularProgressIndicator());
-    } else if (apps!.isEmpty) {
-      return const Center(
-        child: Text(
-          "No UPI Apps found on your device. Please use the QR code to pay using another device.",
-          textAlign: TextAlign.center,
-          style: TextStyle(color: AppColors.warningOrange, fontWeight: FontWeight.bold),
-        ),
-      );
-    } else {
-      return Wrap(
-        alignment: WrapAlignment.center,
-        spacing: 16,
-        runSpacing: 16,
-        children: apps!.map<Widget>((UpiApp app) {
-          return GestureDetector(
-            onTap: () => _startTransaction(app),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Container(
-                  height: 60,
-                  width: 60,
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(12),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.05),
-                        blurRadius: 10,
-                        offset: const Offset(0, 4),
-                      )
-                    ],
-                  ),
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(12),
-                    child: Image.memory(app.icon, height: 60, width: 60),
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Text(app.name, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
-              ],
+    return Column(
+      children: [
+        const SizedBox(height: 12),
+        SizedBox(
+          width: double.infinity,
+          height: 56,
+          child: ElevatedButton.icon(
+            onPressed: () async {
+              if (await canLaunchUrl(_upiUri)) {
+                await launchUrl(_upiUri, mode: LaunchMode.externalApplication);
+              } else {
+                _showError('Could not open any UPI app automatically.');
+              }
+            },
+            icon: const Icon(Icons.account_balance_wallet, color: Colors.white),
+            label: const Text('Open UPI App on this device', style: TextStyle(fontSize: 16, color: Colors.white, fontWeight: FontWeight.bold)),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.primaryBlue,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
             ),
-          );
-        }).toList(),
-      );
-    }
+          ),
+        ),
+      ],
+    );
   }
 
   @override
@@ -244,8 +169,8 @@ class _UpiPaymentScreenState extends State<UpiPaymentScreen> {
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 const Text(
-                  'Pay Using Installed Apps',
-                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                  '1. Pay Using Installed Apps',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 8),
                 Text(
@@ -262,8 +187,8 @@ class _UpiPaymentScreenState extends State<UpiPaymentScreen> {
                 const SizedBox(height: 32),
                 
                 const Text(
-                  'Or Scan to Pay via another device',
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.textGrey),
+                  '2. Or Scan to Pay via another device',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 16),
                 
@@ -325,8 +250,10 @@ class _UpiPaymentScreenState extends State<UpiPaymentScreen> {
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text('Enter 12-Digit UTR / Transaction ID', style: TextStyle(fontWeight: FontWeight.bold)),
-                    const SizedBox(height: 8),
+                    const Text('3. Enter 12-Digit UTR / Transaction ID', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+                    const SizedBox(height: 12),
+                    const Text('After paying via the blue button or QR code, type your UTR number below to verify your payment.', style: TextStyle(color: AppColors.textGrey, fontSize: 14)),
+                    const SizedBox(height: 16),
                     TextField(
                       controller: _utrController,
                       keyboardType: TextInputType.number,
