@@ -44,8 +44,17 @@ class _UpiPaymentScreenState extends State<UpiPaymentScreen> {
     });
   }
 
-  String get _upiUrl {
-    return 'upi://pay?pa=$_upiId&pn=$_payeeName&am=${widget.totalAmount.toStringAsFixed(2)}&cu=INR';
+  Uri get _upiUri {
+    return Uri(
+      scheme: 'upi',
+      host: 'pay',
+      queryParameters: {
+        'pa': _upiId,
+        'pn': _payeeName,
+        'am': widget.totalAmount.toStringAsFixed(2),
+        'cu': 'INR',
+      },
+    );
   }
 
   void _copyUpiId() {
@@ -216,11 +225,10 @@ class _UpiPaymentScreenState extends State<UpiPaymentScreen> {
           height: 56,
           child: ElevatedButton.icon(
             onPressed: () async {
-              final Uri uri = Uri.parse(_upiUrl);
-              if (await canLaunchUrl(uri)) {
-                await launchUrl(uri, mode: LaunchMode.externalApplication);
+              if (await canLaunchUrl(_upiUri)) {
+                await launchUrl(_upiUri, mode: LaunchMode.externalApplication);
               } else {
-                _showError('Could not open any UPI app automatically.');
+                _showError('Could not open any UPI app. Make sure GPay/PhonePe is installed.');
               }
             },
             icon: const Icon(Icons.account_balance_wallet, color: Colors.white),
@@ -289,7 +297,7 @@ class _UpiPaymentScreenState extends State<UpiPaymentScreen> {
                       ],
                     ),
                     child: QrImageView(
-                      data: _upiUrl,
+                      data: _upiUri.toString(),
                       version: QrVersions.auto,
                       size: 200.0,
                     ),
