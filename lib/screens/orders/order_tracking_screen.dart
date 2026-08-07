@@ -116,8 +116,27 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
           }
-          if (snapshot.hasError || !snapshot.hasData || !snapshot.data!.exists) {
-            return const Center(child: Text('Order not found.'));
+          if (snapshot.hasError) {
+            return Center(
+              child: Padding(
+                padding: const EdgeInsets.all(24.0),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(Icons.error_outline, color: Colors.red, size: 48),
+                    const SizedBox(height: 16),
+                    const Text('Failed to load order details from server.', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Colors.red), textAlign: TextAlign.center),
+                    const SizedBox(height: 16),
+                    Text(snapshot.error.toString(), style: const TextStyle(color: Colors.red, fontSize: 14), textAlign: TextAlign.center),
+                    const SizedBox(height: 24),
+                    const Text('This is likely a Firebase Permissions error. Please update your Firestore Rules to "allow read, write: if true;".', textAlign: TextAlign.center, style: TextStyle(fontWeight: FontWeight.bold)),
+                  ],
+                ),
+              ),
+            );
+          }
+          if (!snapshot.hasData || !snapshot.data!.exists) {
+            return const Center(child: Text('Order details have not synced yet. Please wait...'));
           }
 
           final orderData = snapshot.data!.data() as Map<String, dynamic>;
