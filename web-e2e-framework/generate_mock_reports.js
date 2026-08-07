@@ -2,137 +2,67 @@ const ExcelJS = require('exceljs');
 const path = require('path');
 const fs = require('fs');
 
-const categories = [
-    { name: 'UI/UX Testing', color: 'FFCCFFCC' }, // Light Green
-    { name: 'Compatibility Testing', color: 'FFFFFACD' }, // LemonChiffon
-    { name: 'Performance Testing', color: 'FFFFE4E1' }, // MistyRose
-    { name: 'Security Testing', color: 'FFE6E6FA' }, // Lavender
-    { name: 'API Testing', color: 'FFE0FFFF' }, // LightCyan
-    { name: 'Database Testing', color: 'FFFFF0F5' }, // LavenderBlush
-    { name: 'Accessibility Testing', color: 'FFF0FFF0' }, // Honeydew
-    { name: 'Platform-Specific Testing', color: 'FFF0F8FF' }, // AliceBlue
-    { name: 'Regression Testing', color: 'FFFFE4B5' }, // Moccasin
-    { name: 'End-to-End Testing', color: 'FFFFC0CB' } // Pink
-];
+const testConfigs = {
+    'Android Tests': {
+        categories: [
+            { name: 'Mobile UI/UX', color: 'FFCCFFCC' }, // Light Green
+            { name: 'Android Compatibility', color: 'FFFFFACD' }, // LemonChiffon
+            { name: 'App Performance', color: 'FFFFE4E1' }, // MistyRose
+            { name: 'Mobile Security', color: 'FFE6E6FA' }, // Lavender
+            { name: 'Android Integrations', color: 'FFF0F8FF' } // AliceBlue
+        ],
+        templates: {
+            'Mobile UI/UX': ["Verify touch target sizes", "Verify bottom navigation bar", "Verify gesture controls", "Verify dark mode UI", "Verify splash screen animations"],
+            'Android Compatibility': ["Verify app on Android 11", "Verify app on Android 13", "Verify app on small screen device", "Verify split-screen mode", "Verify orientation lock"],
+            'App Performance': ["Measure cold start launch time", "Verify memory usage during scroll", "Measure battery drain over 1 hr", "Verify background CPU usage", "Verify local storage cache size"],
+            'Mobile Security': ["Verify biometric face unlock", "Verify fingerprint auth", "Verify Rooted device detection", "Verify ADB backup disabled", "Verify Secure storage (Keystore)"],
+            'Android Integrations': ["Verify push notifications click", "Verify camera intent", "Verify location GPS tracking", "Verify offline mode sync", "Verify Google Pay integration"]
+        }
+    },
+    'Website Tests': {
+        categories: [
+            { name: 'Web UI/UX', color: 'FFB6C1' }, // Light Pink
+            { name: 'Browser Compatibility', color: 'FFE0FFFF' }, // Light Cyan
+            { name: 'Web Performance', color: 'FFFFF0F5' }, // Lavender Blush
+            { name: 'Web Security', color: 'FFFFE4B5' }, // Moccasin
+            { name: 'Web Accessibility', color: 'FFF0FFF0' } // Honeydew
+        ],
+        templates: {
+            'Web UI/UX': ["Verify responsive grid layout", "Verify hover states on buttons", "Verify modal popups close", "Verify forms inline validation", "Verify mega menu dropdown"],
+            'Browser Compatibility': ["Verify app on Chrome v120+", "Verify app on Firefox", "Verify app on Safari (macOS)", "Verify app on Edge", "Verify mobile-web viewport scaling"],
+            'Web Performance': ["Measure First Contentful Paint (FCP)", "Measure Time to Interactive (TTI)", "Verify image lazy loading", "Verify JS bundle size", "Measure API TTFB on web client"],
+            'Web Security': ["Verify XSS protection", "Verify CSRF tokens in forms", "Verify CORS headers", "Verify secure HttpOnly cookies", "Verify session timeout popup"],
+            'Web Accessibility': ["Verify WCAG 2.1 AA compliance", "Verify screen reader ARIA tags", "Verify keyboard Tab navigation", "Verify color contrast ratio", "Verify alt text for all images"]
+        }
+    },
+    'API Tests': {
+        categories: [
+            { name: 'Endpoint Verification', color: 'FFD3D3D3' }, // Light Gray
+            { name: 'API Security', color: 'FFFFDAB9' }, // Peach Puff
+            { name: 'Payload Validation', color: 'FFE6E6FA' } // Lavender
+        ],
+        templates: {
+            'Endpoint Verification': ["Verify GET /api/v1/menu", "Verify POST /api/v1/orders", "Verify PUT /api/v1/profile", "Verify DELETE /api/v1/cart/item", "Verify GET /api/v1/queue/status"],
+            'API Security': ["Verify API Key authentication", "Verify JWT token expiration", "Verify Rate Limiting (429)", "Verify Unauthorized (401)", "Verify SQL injection prevention in params"],
+            'Payload Validation': ["Verify JSON schema structure", "Verify missing mandatory fields", "Verify invalid email format handling", "Verify negative integer rejection", "Verify maximum payload size limit"]
+        }
+    }
+};
 
-const testCaseTemplates = {
-    'UI/UX Testing': [
-        "Verify consistency of font styles across {app} screens",
-        "Verify color contrast for readability in dark mode",
-        "Verify button hover effects and animations",
-        "Verify clear error messages for invalid inputs",
-        "Verify smooth transitions between dashboard tabs",
-        "Verify image loading placeholders for menu items",
-        "Verify form field alignment on checkout page",
-        "Verify dark mode UI consistency",
-        "Verify glassmorphism effect on cards"
-    ],
-    'Compatibility Testing': [
-        "Verify app behavior on small screens",
-        "Verify app behavior on tablets/large screens",
-        "Verify app compatibility with latest OS version",
-        "Verify app compatibility with older OS versions",
-        "Verify app behavior on different aspect ratios",
-        "Verify app fonts scaling with system settings",
-        "Verify background tasks on low-end hardware",
-        "Verify app launch time on cold start",
-        "Verify interaction with system navigation gestures"
-    ],
-    'Performance Testing': [
-        "Verify app behavior when low storage",
-        "Measure home screen load time",
-        "Verify app performance during dense list/menu scroll",
-        "Verify CPU usage during heavy map interactions",
-        "Verify memory usage during image loading",
-        "Verify network usage optimization",
-        "Measure login API response time",
-        "Measure search query execution time",
-        "Verify app behavior during network drops",
-        "Verify frame rate during animations",
-        "Verify battery consumption during active use"
-    ],
-    'Security Testing': [
-        "Verify data encryption in local storage",
-        "Verify HTTPS enforcement for all API calls",
-        "Verify session timeout and auto-logout",
-        "Verify protection against SQL injection",
-        "Verify sensitive data masking in logs",
-        "Verify biometric authentication flow",
-        "Verify SSL pinning implementation",
-        "Verify secure password hashing",
-        "Verify prevention of rooted device access",
-        "Verify OAuth2 token security"
-    ],
-    'API Testing': [
-        "Verify GET /menu returns correct data format",
-        "Verify POST /orders handles valid payload",
-        "Verify API returns 401 for unauthorized access",
-        "Verify API rate limiting",
-        "Verify API error responses for invalid data",
-        "Verify JSON schema validation",
-        "Verify payload size limits",
-        "Verify API versioning header",
-        "Verify concurrent API requests handling",
-        "Verify API latency in different regions"
-    ],
-    'Database Testing': [
-        "Verify user data persistence in local DB",
-        "Verify real-time updates for order availability",
-        "Verify database indexing for optimized searches",
-        "Verify data consistency across multi-role accounts",
-        "Verify transaction integrity for payments",
-        "Verify automatic backup and recovery",
-        "Verify data migration scripts on app update",
-        "Verify field-level security rules",
-        "Verify query performance for large datasets",
-        "Verify cleanup of expired session requests"
-    ],
-    'Accessibility Testing': [
-        "Verify screen reader support for all flows",
-        "Verify touch target sizes meet standards",
-        "Verify high contrast theme support",
-        "Verify text scaling without layout breakage",
-        "Verify descriptive alt text for images",
-        "Verify focus indicators for interactive elements",
-        "Verify keyboard navigation support",
-        "Verify captions for any video content",
-        "Verify clear error announcements to screen reader",
-        "Verify accessible names for icons"
-    ],
-    'Platform-Specific Testing': [
-        "Verify app behavior on incoming calls",
-        "Verify app behavior during network switch",
-        "Verify push notification click-through behavior",
-        "Verify app state preservation during backgrounding",
-        "Verify camera integration for profile picture",
-        "Verify location permission handling",
-        "Verify deep link processing",
-        "Verify orientation change handling",
-        "Verify offline data sync functionality",
-        "Verify app interaction with other system apps"
-    ],
-    'Regression Testing': [
-        "Verify existing bug fix: Cart total calculation",
-        "Verify existing bug fix: Login session persistence",
-        "Verify legacy feature compatibility",
-        "Verify core flow: App launch to dashboard",
-        "Verify registration fields validation",
-        "Full Flow: User registration to menu browsing"
-    ],
-    'End-to-End Testing': [
-        "Full Flow: User login, add to cart, and checkout",
-        "Full Flow: Admin dashboard monitoring to order approval",
-        "Full Flow: Guest search to login prompt to ordering",
-        "Full Flow: Payment gateway processing and confirmation",
-        "Full Flow: Order status tracking from placed to delivered"
-    ]
+// Fallback for others
+const defaultCategories = [
+    { name: 'System Validation', color: 'FFFFE4C4' },
+    { name: 'Integration Checks', color: 'FFE0FFFF' }
+];
+const defaultTemplates = {
+    'System Validation': ["Verify backend service health", "Verify database connection", "Verify redis cache hit rate", "Verify environment variables", "Verify server memory limits"],
+    'Integration Checks': ["Verify third-party payment gateway", "Verify email service SMTP", "Verify SMS OTP provider", "Verify analytics tracking", "Verify cloud storage upload"]
 };
 
 async function generateReport(filename, sheetName, totalTests) {
     const workbook = new ExcelJS.Workbook();
     const sheet = workbook.addWorksheet(sheetName);
 
-    // Setup columns based on user image
     sheet.columns = [
         { header: 'No.', key: 'id', width: 5 },
         { header: 'Category', key: 'category', width: 25 },
@@ -142,40 +72,24 @@ async function generateReport(filename, sheetName, totalTests) {
         { header: 'Timestamp', key: 'timestamp', width: 25 }
     ];
 
-    // Style the header
     sheet.getRow(1).font = { bold: true, color: { argb: 'FFFFFFFF' } };
-    sheet.getRow(1).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF2F4F4F' } }; // Dark Slate Gray
+    sheet.getRow(1).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF2F4F4F' } };
 
     let currentRow = 2;
-    const isMobile = sheetName.includes('Android');
-    const appType = isMobile ? 'Mobile' : 'Web';
+    const config = testConfigs[sheetName] || { categories: defaultCategories, templates: defaultTemplates };
+    const categories = config.categories;
+    const templates = config.templates;
 
-    let selectedCategories = categories;
-    
-    if (sheetName === 'Android Tests' || sheetName === 'Website Tests') {
-        selectedCategories = categories.filter(c => ['UI/UX Testing', 'Compatibility Testing', 'Accessibility Testing', 'Platform-Specific Testing', 'End-to-End Testing'].includes(c.name));
-    } else if (sheetName === 'API Tests') {
-        selectedCategories = categories.filter(c => ['API Testing', 'Security Testing'].includes(c.name));
-    } else if (sheetName === 'Performance Tests') {
-        selectedCategories = categories.filter(c => ['Performance Testing'].includes(c.name));
-    } else if (sheetName === 'Validation Tests') {
-        selectedCategories = categories.filter(c => ['Database Testing', 'Regression Testing'].includes(c.name));
-    } else if (sheetName === 'Deployment Tests') {
-        selectedCategories = categories.filter(c => ['End-to-End Testing', 'Security Testing', 'Performance Testing'].includes(c.name));
-    }
+    const testsPerCategory = Math.ceil(totalTests / categories.length);
 
-    // We need totalTests tests. We will loop through selectedCategories and duplicate/modify templates slightly.
-    const testsPerCategory = Math.ceil(totalTests / selectedCategories.length);
-
-    for (const category of selectedCategories) {
-        const templates = testCaseTemplates[category.name];
+    for (const category of categories) {
+        const catTemplates = templates[category.name];
         
         for (let i = 0; i < testsPerCategory; i++) {
             if (currentRow - 1 > totalTests) break;
 
-            // Pick a template and customize it
-            const template = templates[i % templates.length];
-            const testCaseText = `TC${(currentRow - 1).toString().padStart(3, '0')}: ${template.replace('{app}', appType)} ${Math.floor(i / templates.length) > 0 ? `(Variation ${Math.floor(i / templates.length) + 1})` : ''}`;
+            const template = catTemplates[i % catTemplates.length];
+            const testCaseText = `TC${(currentRow - 1).toString().padStart(3, '0')}: ${template} ${Math.floor(i / catTemplates.length) > 0 ? `(Scenario ${Math.floor(i / catTemplates.length) + 1})` : ''}`;
 
             const row = sheet.addRow({
                 id: currentRow - 1,
@@ -186,16 +100,11 @@ async function generateReport(filename, sheetName, totalTests) {
                 timestamp: new Date().toLocaleString()
             });
 
-            // Style the row with category color
             row.eachCell((cell) => {
-                cell.fill = {
-                    type: 'pattern',
-                    pattern: 'solid',
-                    fgColor: { argb: category.color }
-                };
-                if (cell.col === 4) { // Status column
+                cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: category.color } };
+                if (cell.col === 4) {
                     cell.font = { bold: true, color: { argb: 'FFFFFFFF' } };
-                    cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF2E8B57' } }; // SeaGreen for PASS
+                    cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF2E8B57' } };
                 }
             });
 
