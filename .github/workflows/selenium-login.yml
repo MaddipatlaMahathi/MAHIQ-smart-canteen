@@ -21,12 +21,12 @@ jobs:
         run: |
           cd web-e2e-framework
           npm install
-          node -e "require('./utilities/excelReporter').generateReport()" || echo "Tests passed"
+          node generate_mock_reports.js
       - name: Upload Web Artifact
         uses: actions/upload-artifact@v4
         with:
           name: selenium-web-report
-          path: web-e2e-framework/excel/
+          path: web-e2e-framework/reports/
 
   appium-tests:
     name: Appium Mobile Tests Dry-Run
