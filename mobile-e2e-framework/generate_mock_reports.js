@@ -150,10 +150,24 @@ async function generateReport(filename, sheetName, totalTests) {
     const isMobile = sheetName.includes('Android');
     const appType = isMobile ? 'Mobile' : 'Web';
 
-    // We need 300 tests. We will loop through categories and duplicate/modify templates slightly to reach 300.
-    const testsPerCategory = Math.ceil(totalTests / categories.length);
+    let selectedCategories = categories;
+    
+    if (sheetName === 'Android Tests' || sheetName === 'Website Tests') {
+        selectedCategories = categories.filter(c => ['UI/UX Testing', 'Compatibility Testing', 'Accessibility Testing', 'Platform-Specific Testing', 'End-to-End Testing'].includes(c.name));
+    } else if (sheetName === 'API Tests') {
+        selectedCategories = categories.filter(c => ['API Testing', 'Security Testing'].includes(c.name));
+    } else if (sheetName === 'Performance Tests') {
+        selectedCategories = categories.filter(c => ['Performance Testing'].includes(c.name));
+    } else if (sheetName === 'Validation Tests') {
+        selectedCategories = categories.filter(c => ['Database Testing', 'Regression Testing'].includes(c.name));
+    } else if (sheetName === 'Deployment Tests') {
+        selectedCategories = categories.filter(c => ['End-to-End Testing', 'Security Testing', 'Performance Testing'].includes(c.name));
+    }
 
-    for (const category of categories) {
+    // We need totalTests tests. We will loop through selectedCategories and duplicate/modify templates slightly.
+    const testsPerCategory = Math.ceil(totalTests / selectedCategories.length);
+
+    for (const category of selectedCategories) {
         const templates = testCaseTemplates[category.name];
         
         for (let i = 0; i < testsPerCategory; i++) {
