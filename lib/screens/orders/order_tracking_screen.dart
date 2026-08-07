@@ -151,6 +151,12 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
           _checkStatusChange(currentStatus);
 
           bool isPaid = paymentStatus == 'Paid';
+          bool isVerificationPending = paymentStatus == 'Verification Pending';
+          
+          Color badgeColor = isPaid ? AppColors.successGreen : (isVerificationPending ? AppColors.primaryBlue : AppColors.warningOrange);
+          IconData badgeIcon = isPaid ? Icons.check_circle : (isVerificationPending ? Icons.hourglass_top : Icons.pending_actions);
+          String badgeTitle = isPaid ? 'Payment Successful' : (isVerificationPending ? 'Payment Verifying' : 'Payment Pending');
+          String badgeSubtitle = isPaid ? 'Paid via $paymentMethod' : (isVerificationPending ? 'Show UTR at Counter ($paymentMethod)' : 'Pay at Counter ($paymentMethod)');
 
           return SingleChildScrollView(
             padding: const EdgeInsets.all(24.0),
@@ -162,24 +168,24 @@ class _OrderTrackingScreenState extends State<OrderTrackingScreen> {
                   width: double.infinity,
                   padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 24),
                   decoration: BoxDecoration(
-                    color: isPaid ? AppColors.successGreen.withOpacity(0.1) : AppColors.warningOrange.withOpacity(0.1),
+                    color: badgeColor.withOpacity(0.1),
                     borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: isPaid ? AppColors.successGreen : AppColors.warningOrange, width: 2),
+                    border: Border.all(color: badgeColor, width: 2),
                   ),
                   child: Row(
                     children: [
-                      Icon(isPaid ? Icons.check_circle : Icons.pending_actions, color: isPaid ? AppColors.successGreen : AppColors.warningOrange, size: 32),
+                      Icon(badgeIcon, color: badgeColor, size: 32),
                       const SizedBox(width: 16),
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              isPaid ? 'Payment Successful' : 'Payment Pending',
-                              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: isPaid ? AppColors.successGreen : AppColors.warningOrange),
+                              badgeTitle,
+                              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: badgeColor),
                             ),
                             Text(
-                              isPaid ? 'Paid via $paymentMethod' : 'Pay at Counter ($paymentMethod)',
+                              badgeSubtitle,
                               style: const TextStyle(color: AppColors.textGrey, fontSize: 14),
                             ),
                           ],
