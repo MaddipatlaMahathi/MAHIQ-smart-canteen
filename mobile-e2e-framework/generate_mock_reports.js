@@ -5,58 +5,148 @@ const fs = require('fs');
 const testConfigs = {
     'Android Tests': {
         categories: [
-            { name: 'Mobile UI/UX', color: 'FFCCFFCC' }, // Light Green
-            { name: 'Android Compatibility', color: 'FFFFFACD' }, // LemonChiffon
-            { name: 'App Performance', color: 'FFFFE4E1' }, // MistyRose
-            { name: 'Mobile Security', color: 'FFE6E6FA' }, // Lavender
-            { name: 'Android Integrations', color: 'FFF0F8FF' } // AliceBlue
+            { name: 'Mobile App UI/UX', color: 'FFCCFFCC' }, 
+            { name: 'Canteen Core Flows', color: 'FFFFFACD' }, 
+            { name: 'Queue & Tracking', color: 'FFFFE4E1' }, 
+            { name: 'Mobile Security', color: 'FFE6E6FA' }, 
+            { name: 'Hardware Integrations', color: 'FFF0F8FF' } 
         ],
         templates: {
-            'Mobile UI/UX': ["Verify touch target sizes", "Verify bottom navigation bar", "Verify gesture controls", "Verify dark mode UI", "Verify splash screen animations"],
-            'Android Compatibility': ["Verify app on Android 11", "Verify app on Android 13", "Verify app on small screen device", "Verify split-screen mode", "Verify orientation lock"],
-            'App Performance': ["Measure cold start launch time", "Verify memory usage during scroll", "Measure battery drain over 1 hr", "Verify background CPU usage", "Verify local storage cache size"],
-            'Mobile Security': ["Verify biometric face unlock", "Verify fingerprint auth", "Verify Rooted device detection", "Verify ADB backup disabled", "Verify Secure storage (Keystore)"],
-            'Android Integrations': ["Verify push notifications click", "Verify camera intent", "Verify location GPS tracking", "Verify offline mode sync", "Verify Google Pay integration"]
+            'Mobile App UI/UX': [
+                "Verify MAHIQ splash screen loads canteen logo correctly",
+                "Verify dark mode UI for late-night hostel orders",
+                "Verify smooth scrolling on long canteen menu list",
+                "Verify 'Add to Cart' floating button animation",
+                "Verify readable fonts for food item descriptions"
+            ],
+            'Canteen Core Flows': [
+                "Verify adding 3 Samosas and 1 Coffee to cart",
+                "Verify cart total recalculates when item quantity changes",
+                "Verify student can apply valid coupon code at checkout",
+                "Verify Razorpay UPI payment popup launches correctly",
+                "Verify order is placed and virtual token is generated"
+            ],
+            'Queue & Tracking': [
+                "Verify real-time queue length shows 'High Traffic'",
+                "Verify order status changes to 'Preparing' live",
+                "Verify estimated wait time updates dynamically",
+                "Verify push notification received when order is 'Ready'",
+                "Verify past orders appear in student order history"
+            ],
+            'Mobile Security': [
+                "Verify biometric auth for quick checkout",
+                "Verify automatic logout after 30 mins of inactivity",
+                "Verify student cannot access Admin dashboard",
+                "Verify secure transmission of payment details",
+                "Verify app prevents screen recording on payment page"
+            ],
+            'Hardware Integrations': [
+                "Verify scanning table QR code opens menu directly",
+                "Verify GPS location warns if outside college campus",
+                "Verify push notification sound for order readiness",
+                "Verify background sync updates menu prices",
+                "Verify camera intent for profile picture upload"
+            ]
         }
     },
     'Website Tests': {
         categories: [
-            { name: 'Web UI/UX', color: 'FFB6C1' }, // Light Pink
-            { name: 'Browser Compatibility', color: 'FFE0FFFF' }, // Light Cyan
-            { name: 'Web Performance', color: 'FFFFF0F5' }, // Lavender Blush
-            { name: 'Web Security', color: 'FFFFE4B5' }, // Moccasin
-            { name: 'Web Accessibility', color: 'FFF0FFF0' } // Honeydew
+            { name: 'Web Dashboard UI', color: 'FFB6C1' }, 
+            { name: 'Admin Panel Flows', color: 'FFE0FFFF' }, 
+            { name: 'Web Performance', color: 'FFFFF0F5' }, 
+            { name: 'Cross-Browser', color: 'FFFFE4B5' }, 
+            { name: 'Accessibility', color: 'FFF0FFF0' } 
         ],
         templates: {
-            'Web UI/UX': ["Verify responsive grid layout", "Verify hover states on buttons", "Verify modal popups close", "Verify forms inline validation", "Verify mega menu dropdown"],
-            'Browser Compatibility': ["Verify app on Chrome v120+", "Verify app on Firefox", "Verify app on Safari (macOS)", "Verify app on Edge", "Verify mobile-web viewport scaling"],
-            'Web Performance': ["Measure First Contentful Paint (FCP)", "Measure Time to Interactive (TTI)", "Verify image lazy loading", "Verify JS bundle size", "Measure API TTFB on web client"],
-            'Web Security': ["Verify XSS protection", "Verify CSRF tokens in forms", "Verify CORS headers", "Verify secure HttpOnly cookies", "Verify session timeout popup"],
-            'Web Accessibility': ["Verify WCAG 2.1 AA compliance", "Verify screen reader ARIA tags", "Verify keyboard Tab navigation", "Verify color contrast ratio", "Verify alt text for all images"]
+            'Web Dashboard UI': [
+                "Verify responsive grid layout for food categories",
+                "Verify hover states on 'Add to Cart' buttons",
+                "Verify sticky header stays visible on scroll",
+                "Verify interactive pie chart for daily sales stats",
+                "Verify search bar auto-suggests 'Biryani'"
+            ],
+            'Admin Panel Flows': [
+                "Verify Admin can mark 'Chicken Noodles' as Out of Stock",
+                "Verify Admin can approve pending cash orders",
+                "Verify Admin can bulk-update menu prices",
+                "Verify Admin sees live incoming orders dashboard",
+                "Verify Admin can generate daily revenue PDF report"
+            ],
+            'Web Performance': [
+                "Measure load time of high-res food images",
+                "Verify lazy loading of below-the-fold menu items",
+                "Measure Time to Interactive on Admin live dashboard",
+                "Verify web socket connection latency for live queue",
+                "Verify caching of static menu assets"
+            ],
+            'Cross-Browser': [
+                "Verify web portal renders correctly on Chrome v120+",
+                "Verify Razorpay integration works on Safari macOS",
+                "Verify responsive mobile-web view on iPhone 15 size",
+                "Verify admin dashboard charts on Firefox",
+                "Verify printing receipts layout on Edge browser"
+            ],
+            'Accessibility': [
+                "Verify keyboard navigation through menu items",
+                "Verify screen reader reads 'Out of Stock' badges",
+                "Verify color contrast for 'Order Ready' green text",
+                "Verify alt text for all food item thumbnails",
+                "Verify focus indicator on checkout form fields"
+            ]
         }
     },
     'API Tests': {
         categories: [
-            { name: 'Endpoint Verification', color: 'FFD3D3D3' }, // Light Gray
-            { name: 'API Security', color: 'FFFFDAB9' }, // Peach Puff
-            { name: 'Payload Validation', color: 'FFE6E6FA' } // Lavender
+            { name: 'Menu & Orders API', color: 'FFD3D3D3' }, 
+            { name: 'Auth & Security', color: 'FFFFDAB9' }, 
+            { name: 'Queue Sockets', color: 'FFE6E6FA' } 
         ],
         templates: {
-            'Endpoint Verification': ["Verify GET /api/v1/menu", "Verify POST /api/v1/orders", "Verify PUT /api/v1/profile", "Verify DELETE /api/v1/cart/item", "Verify GET /api/v1/queue/status"],
-            'API Security': ["Verify API Key authentication", "Verify JWT token expiration", "Verify Rate Limiting (429)", "Verify Unauthorized (401)", "Verify SQL injection prevention in params"],
-            'Payload Validation': ["Verify JSON schema structure", "Verify missing mandatory fields", "Verify invalid email format handling", "Verify negative integer rejection", "Verify maximum payload size limit"]
+            'Menu & Orders API': [
+                "Verify GET /api/v1/canteen/menu returns 200 OK",
+                "Verify POST /api/v1/orders creates new order with token",
+                "Verify PUT /api/v1/admin/inventory updates stock correctly",
+                "Verify GET /api/v1/orders/history returns user orders",
+                "Verify DELETE /api/v1/cart/items clears the cart"
+            ],
+            'Auth & Security': [
+                "Verify POST /api/v1/auth/login returns valid JWT",
+                "Verify expired JWT token returns 401 Unauthorized",
+                "Verify rate limiting (429) on spamming order endpoint",
+                "Verify student token cannot access /api/v1/admin/*",
+                "Verify SQL injection prevention on search?q= parameter"
+            ],
+            'Queue Sockets': [
+                "Verify WebSocket connection established successfully",
+                "Verify socket receives 'order_status_update' event",
+                "Verify socket receives 'queue_length_change' event",
+                "Verify socket auto-reconnects on disconnection",
+                "Verify maximum payload size for socket messages"
+            ]
         }
     }
 };
 
 // Fallback for others
 const defaultCategories = [
-    { name: 'System Validation', color: 'FFFFE4C4' },
-    { name: 'Integration Checks', color: 'FFE0FFFF' }
+    { name: 'MAHIQ Database', color: 'FFFFE4C4' },
+    { name: 'External Integrations', color: 'FFE0FFFF' }
 ];
 const defaultTemplates = {
-    'System Validation': ["Verify backend service health", "Verify database connection", "Verify redis cache hit rate", "Verify environment variables", "Verify server memory limits"],
-    'Integration Checks': ["Verify third-party payment gateway", "Verify email service SMTP", "Verify SMS OTP provider", "Verify analytics tracking", "Verify cloud storage upload"]
+    'MAHIQ Database': [
+        "Verify order insertion into MongoDB collection", 
+        "Verify Redis cache stores active menu items", 
+        "Verify ACID transaction during concurrent order placement", 
+        "Verify database index on order_id for fast lookups", 
+        "Verify daily backup job executes successfully"
+    ],
+    'External Integrations': [
+        "Verify Razorpay payment gateway webhook triggers", 
+        "Verify Firebase Cloud Messaging (FCM) push alerts", 
+        "Verify Twilio SMS integration for OTP login", 
+        "Verify AWS S3 upload for canteen item images", 
+        "Verify Google Maps API for campus delivery distance"
+    ]
 };
 
 async function generateReport(filename, sheetName, totalTests) {
@@ -117,7 +207,7 @@ async function generateReport(filename, sheetName, totalTests) {
 
     const filePath = path.join(outputDir, filename);
     await workbook.xlsx.writeFile(filePath);
-    console.log(`Generated ${filePath} with ${totalTests} test cases.`);
+    console.log(`Generated MAHIQ customized report: ${filePath}`);
 }
 
 async function run() {
