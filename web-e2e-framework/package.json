@@ -1,0 +1,29 @@
+{
+  "name": "web-e2e-framework",
+  "version": "1.0.0",
+  "description": "Enterprise Selenium E2E Automation Framework for Web",
+  "main": "index.js",
+  "scripts": {
+    "test": "mocha tests/**/*.js --timeout 60000 --reporter mochawesome --reporter-options reportDir=reports,reportFilename=Mochawesome_Report",
+    "clean": "rm -rf reports/* screenshots/* logs/* excel/*"
+  },
+  "keywords": [
+    "selenium",
+    "web",
+    "mocha",
+    "chai",
+    "automation"
+  ],
+  "author": "Antigravity",
+  "license": "ISC",
+  "dependencies": {
+    "selenium-webdriver": "^4.18.1"
+  },
+  "devDependencies": {
+    "chai": "^4.4.1",
+    "exceljs": "^4.4.0",
+    "mocha": "^10.4.0",
+    "mochawesome": "^7.1.3",
+    "winston": "^3.13.0"
+  }
+}
