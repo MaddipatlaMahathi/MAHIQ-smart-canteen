@@ -4,6 +4,7 @@ import 'package:qr_flutter/qr_flutter.dart';
 import 'package:upi_india/upi_india.dart';
 import 'package:provider/provider.dart';
 import 'package:uuid/uuid.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../providers/cart_provider.dart';
 import '../../providers/order_provider.dart';
 import '../../providers/auth_provider.dart';
@@ -155,18 +156,19 @@ class _UpiPaymentScreenState extends State<UpiPaymentScreen> {
   }
 
   Widget _buildUpiApps() {
+    Widget appsGrid;
     if (apps == null) {
-      return const Center(child: CircularProgressIndicator());
+      appsGrid = const Center(child: CircularProgressIndicator());
     } else if (apps!.isEmpty) {
-      return const Center(
+      appsGrid = const Center(
         child: Text(
-          "No UPI Apps found on your device. Please use the QR code to pay using another device.",
+          "No UPI Apps found by plugin. Try the universal launcher below.",
           textAlign: TextAlign.center,
           style: TextStyle(color: AppColors.warningOrange, fontWeight: FontWeight.bold),
         ),
       );
     } else {
-      return Wrap(
+      appsGrid = Wrap(
         alignment: WrapAlignment.center,
         spacing: 16,
         runSpacing: 16,
@@ -191,11 +193,7 @@ class _UpiPaymentScreenState extends State<UpiPaymentScreen> {
                   ),
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(12),
-                    child: Image.memory(
-                      app.icon,
-                      height: 60,
-                      width: 60,
-                    ),
+                    child: Image.memory(app.icon, height: 60, width: 60),
                   ),
                 ),
                 const SizedBox(height: 8),
@@ -206,6 +204,35 @@ class _UpiPaymentScreenState extends State<UpiPaymentScreen> {
         }).toList(),
       );
     }
+
+    return Column(
+      children: [
+        appsGrid,
+        const SizedBox(height: 32),
+        const Text('Universal UPI Launcher (Fallback)', style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.textGrey)),
+        const SizedBox(height: 12),
+        SizedBox(
+          width: double.infinity,
+          height: 56,
+          child: ElevatedButton.icon(
+            onPressed: () async {
+              final Uri uri = Uri.parse(_upiUrl);
+              if (await canLaunchUrl(uri)) {
+                await launchUrl(uri, mode: LaunchMode.externalApplication);
+              } else {
+                _showError('Could not open any UPI app automatically.');
+              }
+            },
+            icon: const Icon(Icons.account_balance_wallet, color: Colors.white),
+            label: const Text('Open UPI App directly', style: TextStyle(fontSize: 16, color: Colors.white, fontWeight: FontWeight.bold)),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.primaryBlue,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            ),
+          ),
+        ),
+      ],
+    );
   }
 
   @override
