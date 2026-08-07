@@ -105,10 +105,26 @@ class _OrderConfirmationScreenState extends State<OrderConfirmationScreen> with 
                               child: CircularProgressIndicator(),
                             );
                           }
-                          if (snapshot.hasError || !snapshot.hasData || !snapshot.data!.exists) {
-                            return _buildDetailRow('Order ID:', widget.orderId); // Fallback
+                          if (snapshot.hasError) {
+                            return Column(
+                              children: [
+                                _buildDetailRow('Order ID:', widget.orderId),
+                                const SizedBox(height: 16),
+                                const Text('Error loading details:', style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold)),
+                                Text(snapshot.error.toString(), style: const TextStyle(color: Colors.red, fontSize: 12), textAlign: TextAlign.center),
+                              ],
+                            );
                           }
                           
+                          if (!snapshot.hasData || !snapshot.data!.exists) {
+                            return Column(
+                              children: [
+                                _buildDetailRow('Order ID:', widget.orderId),
+                                const SizedBox(height: 16),
+                                const Text('Order details not found on server yet. Please wait a moment.', style: TextStyle(color: Colors.orange, fontSize: 12), textAlign: TextAlign.center),
+                              ],
+                            );
+                          }
                           var data = snapshot.data!.data() as Map<String, dynamic>;
                           String queueNumber = 'Q-${data['queueNumber']?.toString().padLeft(3, '0') ?? '000'}';
                           String slot = data['slot'] ?? 'N/A';
